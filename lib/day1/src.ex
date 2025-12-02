@@ -49,19 +49,35 @@ defmodule Day1 do
   end
 
   def count_zeros_during_rotation(start_pos, turns) do
-    if turns == 0 do
-      0
-    else
-      direction = if turns > 0, do: 1, else: -1
-      abs_turns = abs(turns)
+    # Normalize position (handle negative remainders)
+    new_pos =
+      case rem(start_pos + turns, 100) do
+        pos when pos < 0 -> pos + 100
+        pos -> pos
+      end
 
-      Enum.reduce(1..abs_turns, 0, fn step, count ->
-        current_pos = rem(start_pos + step * direction, 100)
-        current_pos = if current_pos < 0, do: current_pos + 100, else: current_pos
+    # Count full wraps
+    count = div(abs(turns), 100)
 
-        if current_pos == 0, do: count + 1, else: count
-      end)
-    end
+    # Count partial wraps
+    count =
+      count +
+        if start_pos != 0 and new_pos != 0 do
+          cond do
+            # Wrapped left
+            turns < 0 and new_pos > start_pos -> 1
+            # Wrapped right
+            turns > 0 and new_pos < start_pos -> 1
+            true -> 0
+          end
+        else
+          0
+        end
+
+    # Count landed on zero
+    count = count + if new_pos == 0, do: 1, else: 0
+
+    count
   end
 
   def part2 do
