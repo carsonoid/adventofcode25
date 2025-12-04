@@ -7,28 +7,59 @@ defmodule Day3Part2 do
     parts
     |> Enum.with_index()
     |> Enum.reduce_while([], fn {part, i}, final ->
-      if length(final) + length(parts) - i === 12 do
-        num_left = 12 - length(final)
-        result = final ++ Enum.slice(parts, i..(i + num_left - 1))
-        {:halt, result}
-      else
-        index =
-          final
-          |> Enum.find_index(fn val -> part > val end)
+      IO.inspect(final, charlists: :as_lists)
 
-        result =
-          if index === nil do
-            final ++ [part]
-          else
-            # put the part at index at truncate the list after
+      cond do
+        length(final) + length(parts) - i === 12 ->
+          num_left = 12 - length(final)
+          result = final ++ Enum.slice(parts, i..(i + num_left - 1))
+          {:halt, result}
 
-            List.insert_at(final, index, part)
-            |> Enum.take(index + 1)
-          end
+        true ->
+          index =
+            final
+            |> Enum.find_index(&(part > &1))
 
-        {:cont, result}
+          IO.inspect(index, label: "index for part #{part} at position #{i}")
+
+          result =
+            if index === nil do
+              final ++ [part]
+            else
+              # index can't be any more left of the current position then there
+              # are chars right of the curent position
+              # Ex: 811111111111 trying to place 9 with nothing remaining we need to put 9 in the last position
+              # instead of replacing 8 which is what would normally happen
+
+              # For example adding 9 to this:
+              # [8, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+              # [8, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 1, 1, 1]
+              # we need to resolve index 11 as the target
+
+              number_of_digits_left =
+                length(parts) - i - 1
+
+              IO.inspect(number_of_digits_left,
+                label: "number_of_digits_left for part #{part} at position #{i}"
+              )
+
+              index =
+                if 12 - index > number_of_digits_left do
+                  11 - number_of_digits_left
+                else
+                  index
+                end
+
+              IO.inspect("new index: #{index} for part #{part} at position #{i}")
+
+              # put the part at index at truncate the list after
+              List.insert_at(final, index, part) |> Enum.take(index + 1)
+            end
+
+          {:cont, result}
       end
     end)
+    |> Enum.take(12)
     |> Enum.join()
     |> String.to_integer()
     |> IO.inspect(label: "result")
@@ -42,5 +73,7 @@ defmodule Day3Part2 do
 
     lines
     |> Enum.map(&solve_line/1)
+    |> Enum.sum()
+    |> IO.inspect(label: "final result")
   end
 end
