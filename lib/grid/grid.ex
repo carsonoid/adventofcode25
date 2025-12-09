@@ -90,6 +90,13 @@ defmodule(Grid) do
     %Grid{grid | cells: cells}
   end
 
+  def new(width, height) do
+    for _ <- 0..(height - 1) do
+      String.duplicate(".", width)
+    end
+    |> from_lines()
+  end
+
   def from_lines(lines) do
     from_lines(lines, & &1)
   end
