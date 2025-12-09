@@ -57,23 +57,49 @@ defmodule Day9Part2 do
 
   defp vertical_lines_bisect?(
          v_lines,
-         {top_left, top_right, bottom_left, _bottom_right} = corners
+         {top_left, top_right, bottom_left, _bottom_right}
        ) do
-    IO.inspect(corners)
-
-    # if a vertical line's y is between the left and right corners exclusive then it bisects
     Enum.any?(v_lines, fn {{x, y1}, {_, y2}} ->
+      # line x must be strictly inside the rectangle (not on edges)
       x_inside = x > elem(top_left, 0) and x < elem(top_right, 0)
 
-      y_overlaps =
-        (y1 < elem(bottom_left, 1) and y2 > elem(top_left, 1)) or
-          (y2 < elem(bottom_left, 1) and y1 > elem(top_left, 1))
+      # For a vertical line to bisect the rectangle, it must cross through it
+      # This means the line's y range must overlap with the rectangle's y range
+      line_min_y = min(y1, y2)
+      line_max_y = max(y1, y2)
+      rect_min_y = elem(top_left, 1)
+      rect_max_y = elem(bottom_left, 1)
 
-      x_inside and y_overlaps
+      # Check if line crosses through the rectangle vertically
+      line_crosses_rect = line_min_y < rect_max_y and line_max_y > rect_min_y
+
+      x_inside and line_crosses_rect
     end)
   end
 
-  defp get_area({x1, y1}, {x2, y2}) do
+  defp horizontal_lines_bisect?(
+         h_lines,
+         {top_left, top_right, _bottom_left, bottom_right}
+       ) do
+    Enum.any?(h_lines, fn {{x1, y}, {x2, _}} ->
+      # line y must be strictly inside the rectangle (not on edges)
+      y_inside = y > elem(top_left, 1) and y < elem(bottom_right, 1)
+
+      # For a horizontal line to bisect the rectangle, it must cross through it
+      # This means the line's x range must overlap with the rectangle's x range
+      line_min_x = min(x1, x2)
+      line_max_x = max(x1, x2)
+      rect_min_x = elem(top_left, 0)
+      rect_max_x = elem(top_right, 0)
+
+      # Check if line crosses through the rectangle horizontally
+      line_crosses_rect = line_min_x < rect_max_x and line_max_x > rect_min_x
+
+      y_inside and line_crosses_rect
+    end)
+  end
+
+  def get_area({x1, y1}, {x2, y2}) do
     max_x = max(x1, x2)
     max_y = max(y1, y2)
     min_x = min(x1, x2)
@@ -128,6 +154,14 @@ defmodule Day9Part2 do
     IO.inspect(v_lines, label: :v_lines) |> Enum.count() |> IO.inspect(label: :v_lines_count)
     IO.inspect(h_lines, label: :h_lines) |> Enum.count() |> IO.inspect(label: :h_lines_count)
 
+    IO.puts("")
+
+    # vertical_lines_bisect?(
+    #   [{{7, 0}, {7, 1}}],
+    #   get_corners({2, 5}, {11, 1})
+    # )
+    # |> IO.inspect(label: :testing)
+
     points
     |> RC.comb(2)
     |> IO.inspect()
@@ -137,7 +171,8 @@ defmodule Day9Part2 do
       # lines that pass through them, not including lines along the edge of them
       corners = get_corners(p1, p2)
 
-      vertical_lines_bisect?(v_lines, corners) |> IO.inspect(label: :vertical_bisect)
+      vertical_lines_bisect?(v_lines, corners) or
+        horizontal_lines_bisect?(h_lines, corners)
     end)
     |> Enum.map(fn [p1, p2] ->
       get_area(p1, p2)
