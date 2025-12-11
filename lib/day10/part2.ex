@@ -176,16 +176,89 @@ defmodule Day10Part2 do
     end
   end
 
+  def get_z3_input(machine) do
+    [
+      # constants
+      for i <- 0..(length(machine.button_sets) - 1) do
+        "(declare-const b#{i} Int)"
+      end
+      |> Enum.join("\n"),
+      # non-negative asserts
+      for i <- 0..(length(machine.button_sets) - 1) do
+        "(assert (>= b#{i} 0))"
+      end
+      |> Enum.join("\n"),
+      # assert values
+      # first iterate all positions
+      for i <- 0..(length(machine.target) - 1) do
+        sum_terms =
+          for bs <- machine.button_sets do
+            Enum.at(bs, i)
+          end
+          |> IO.inspect()
+          |> Enum.with_index()
+          |> Enum.filter(fn {v, _} -> v == 1 end)
+          |> Enum.map(fn {_, i} -> "b#{i}" end)
+          |> Enum.join(" ")
+
+        "(assert (= (+ #{sum_terms}) #{Enum.at(machine.target, i)}))"
+      end
+      |> Enum.join("\n"),
+      # minimize
+      "(minimize (+ " <>
+        (for i <- 0..(length(machine.button_sets) - 1) do
+           "b#{i}"
+         end
+         |> Enum.join(" ")) <> "))",
+      "(check-sat)",
+      "(get-model)"
+    ]
+    |> Enum.join("\n")
+  end
+
   def solve do
     lines = File.read!(System.argv() |> hd()) |> String.trim() |> String.split("\n")
 
+    # Works for sample! But I'm done and will just use someone else's linear solver
+    # for line <- lines do
+    #   m = Machine.new(line)
+    #   Machine.dfs(m.joltage, m.target, m.button_sets)
+    # end
+    # |> IO.inspect()
+    # |> Enum.map(&elem(&1, 1))
+    # |> Enum.sum()
+    # |> IO.inspect(label: :result)
+
     for line <- lines do
       m = Machine.new(line)
-      Machine.dfs(m.joltage, m.target, m.button_sets)
+
+      IO.inspect(m)
+
+      content =
+        get_z3_input(m)
+
+      IO.puts(content)
+
+      File.write!("/tmp/z3.in", content)
+
+      {result, err} =
+        System.cmd("z3", ["/tmp/z3.in"])
+        |> IO.inspect()
+
+      if err != 0 do
+        IO.inspect(err)
+        raise("error")
+      end
+
+      Regex.scan(~r"Int\n\s+(\d+)\)?", result)
+      |> IO.inspect()
+      |> Enum.map(&tl/1)
+      |> List.flatten()
+      |> Enum.map(&String.to_integer/1)
+      |> Enum.sum()
+      |> IO.inspect()
     end
-    |> IO.inspect()
-    |> Enum.map(&elem(&1, 1))
     |> Enum.sum()
-    |> IO.inspect(label: :result)
+    |> IO.inspect(label: :final)
   end
 end
