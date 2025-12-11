@@ -27,6 +27,9 @@ defmodule Day11Part2 do
     cache_key = {node, dac, fft}
 
     case Map.get(cache, cache_key) do
+      cached_result when cached_result != nil ->
+        {cached_result, cache}
+
       nil ->
         {result, updated_cache} =
           case node do
@@ -48,9 +51,6 @@ defmodule Day11Part2 do
 
         final_cache = Map.put(updated_cache, cache_key, result)
         {result, final_cache}
-
-      cached_result ->
-        {cached_result, cache}
     end
   end
 
