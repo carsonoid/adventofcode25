@@ -1,21 +1,7 @@
-# Adventofcode25
+# Adventofcode25 - Elixir 🧪
 
-**TODO: Add description**
+👋 Hello! 2025 was the year I did AoC in something totally different. I have had almost no exposure
+to functional languages before. I have also never used Elixir before this year.
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `adventofcode25` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:adventofcode25, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/adventofcode25>.
-
+So please take my ugly and inefficient code with a grain of salt! I'm trying to learn the language as I solve
+the problems for the year.
